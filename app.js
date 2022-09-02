@@ -1,6 +1,6 @@
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.6.6/firebase-app.js'
 import {  } from 'https://www.gstatic.com/firebasejs/9.6.6/firebase-firestore.js'
-import { getAuth , GoogleAuthProvider , signInWithPopup } from 'https://www.gstatic.com/firebasejs/9.6.6/firebase-auth.js'
+import { GoogleAuthProvider , signInWithPopup , getAuth ,  signOut , onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/9.6.6/firebase-auth.js'
 
 const firebaseConfig = {
     apiKey: 'AIzaSyCtDHXeW5ekAyeOMlk6tR6cxpRC_o2iTUo',
@@ -19,10 +19,10 @@ const provider = new GoogleAuthProvider()
 
 const phrasesContainer = document.querySelector('[data-js="phrases-container"]')
 const buttonGoogle = document.querySelector('[data-js="button-google-login"]')
+const buttonLogout = document.querySelector('[data-js="logout"]')
 
-const user = null //{}
-
-const showAppropriatedNavLinks = () => {
+const showAppropriatedNavLinks = user => {
+    console.log(user)
     const lis = [...document.querySelector('[data-js="nav-ul"]').children]
     
     lis.forEach(li => {
@@ -53,19 +53,28 @@ const initModals = () => {
 
 const login = async () => {
     try {
-        const result = await signInWithPopup(auth, provider)
-        console.log(result)
+        await signInWithPopup(auth, provider)
              
         const modalLogin = document.querySelector('[data-modal="login"]')
-        
         M.Modal.getInstance(modalLogin).close()
     }catch (error){
         console.log(error)
     }
 }
 
+const logout = async () => {
+    try {
+        await signOut(auth)
+        console.log('usuario foi deslogado')
+    } catch (error) {
+        
+    }    
+}
+
+onAuthStateChanged(auth, showAppropriatedNavLinks)
+
 buttonGoogle.addEventListener('click', login)
 
-showAppropriatedNavLinks()
+buttonLogout.addEventListener('click',logout )
 
 initModals()
