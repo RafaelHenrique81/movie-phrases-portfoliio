@@ -23,7 +23,21 @@ const buttonLogout = document.querySelector('[data-js="logout"]')
 
 const showAppropriatedNavLinks = user => {
     console.log(user)
+    const loginMessageExists = document.querySelector('[data-js="login-message"]')
     const lis = [...document.querySelector('[data-js="nav-ul"]').children]
+
+    if (loginMessageExists) {
+        loginMessageExists.remove()
+    }
+
+    if (!user) {
+        const loginMessage = document.createElement('h5')
+        
+        loginMessage.textContent = 'Faça login para ver as frases'
+        loginMessage.classList.add('center-align', 'white-text')
+        loginMessage.setAttribute('data-js', 'login-message')
+        phrasesContainer.append(loginMessage)
+    }
     
     lis.forEach(li => {
         const lisShouldBeVisible = li.dataset.js.includes(user ? 'logged-in' : 'logged-out')
@@ -35,15 +49,6 @@ const showAppropriatedNavLinks = user => {
         
         li.classList.add('hide')
     })
-    
-    if (!user) {
-        const loginMessage = document.createElement('h5')
-        
-        loginMessage.textContent = 'Faça login para ver as frases'
-        loginMessage.classList.add('center-align', 'white-text')
-        phrasesContainer.append(loginMessage)
-    }
-    
 }
 
 const initModals = () => {
