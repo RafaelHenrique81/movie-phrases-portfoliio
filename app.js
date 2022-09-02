@@ -55,6 +55,10 @@ const login = async () => {
     try {
         const result = await signInWithPopup(auth, provider)
         console.log(result)
+             
+        const modalLogin = document.querySelector('[data-modal="login"]')
+        
+        M.Modal.getInstance(modalLogin).close()
     }catch (error){
         console.log(error)
     }
