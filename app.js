@@ -1,5 +1,5 @@
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.6.6/firebase-app.js'
-import { getFirestore , collection , addDoc } from 'https://www.gstatic.com/firebasejs/9.6.6/firebase-firestore.js'
+import { getFirestore , collection , addDoc , onSnapshot } from 'https://www.gstatic.com/firebasejs/9.6.6/firebase-firestore.js'
 import { GoogleAuthProvider , signInWithPopup , getAuth ,  signOut , onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/9.6.6/firebase-auth.js'
 
 const firebaseConfig = {
@@ -17,7 +17,7 @@ const auth = getAuth(app)
 const provider = new GoogleAuthProvider()
 const db = getFirestore(app)
 const collectionPhrases = collection(db, 'movie-phrases')
-
+const phrasesList = document.querySelector('[data-js="phrases-list"]')
 
 const phrasesContainer = document.querySelector('[data-js="phrases-container"]')
 const buttonGoogle = document.querySelector('[data-js="button-google-login"]')
@@ -72,6 +72,27 @@ const showAppropriatedNavLinks = user => {
         formAddPhrase.removeEventListener('submit', addPhrase)
     }else{
         formAddPhrase.addEventListener('submit', addPhrase)
+        onSnapshot(collectionPhrases, snapshot => {
+            const documentFragment = document.createDocumentFragment()
+
+            snapshot.docChanges().forEach(docChange => {
+                const liPhrase = document.createElement('li')
+                const movieTitleContainer = document.createElement('div')
+                const phraseContainer = document.createElement('div')
+                const { movieTitle, phrase} = docChange.doc.data()
+
+                movieTitleContainer.textContent = DOMPurify.sanitize(movieTitle)
+                phraseContainer.textContent = DOMPurify.sanitize(phrase)
+                movieTitleContainer.setAttribute('class', 'collapsible-header blue-grey-text text-lighten-5 blue-grey darken-4')
+                phraseContainer.setAttribute('class', 'collapsible-body blue-grey-text text-lighten-5 blue-grey darken-3'
+                )
+
+                liPhrase.append(movieTitleContainer, phraseContainer)
+                documentFragment.append(liPhrase)
+            })
+            
+            phrasesList.append(documentFragment)
+        })
     }
     
 }
