@@ -1,5 +1,5 @@
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.6.6/firebase-app.js'
-import {  } from 'https://www.gstatic.com/firebasejs/9.6.6/firebase-firestore.js'
+import { getFirestore , collection , addDoc } from 'https://www.gstatic.com/firebasejs/9.6.6/firebase-firestore.js'
 import { GoogleAuthProvider , signInWithPopup , getAuth ,  signOut , onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/9.6.6/firebase-auth.js'
 
 const firebaseConfig = {
@@ -15,16 +15,47 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig)
 const auth = getAuth(app)
 const provider = new GoogleAuthProvider()
+const db = getFirestore(app)
+const collectionPhrases = collection(db, 'movie-phrases')
 
 
 const phrasesContainer = document.querySelector('[data-js="phrases-container"]')
 const buttonGoogle = document.querySelector('[data-js="button-google-login"]')
 const buttonLogout = document.querySelector('[data-js="logout"]')
+const addPhrase =  async e =>{
+    e.preventDefault()
+
+    try {
+        const addedDoc = await addDoc(collectionPhrases, {
+            movieTitle: DOMPurify.sanitize(e.target.title.value), 
+            phrase: DOMPurify.sanitize(e.target.phrase.value) 
+        })
+
+        console.log('Document adicionado, id: ', addedDoc.id)
+        e.target.reset()
+
+        const modalAddPhrase = document.querySelector('[data-modal="add-phrase"]')
+        M.Modal.getInstance(modalAddPhrase).close()
+    } catch (error) {
+        console.log(error)
+    }
+}
 
 const showAppropriatedNavLinks = user => {
-    console.log(user)
     const loginMessageExists = document.querySelector('[data-js="login-message"]')
     const lis = [...document.querySelector('[data-js="nav-ul"]').children]
+    const formAddPhrase = document.querySelector('[data-js="add-phrase-form"]')
+   
+    lis.forEach(li => {
+        const lisShouldBeVisible = li.dataset.js.includes(user ? 'logged-in' : 'logged-out')
+        
+        if(lisShouldBeVisible) {
+            li.classList.remove('hide')
+            return 
+        }
+        
+        li.classList.add('hide')
+    })
 
     if (loginMessageExists) {
         loginMessageExists.remove()
@@ -37,18 +68,12 @@ const showAppropriatedNavLinks = user => {
         loginMessage.classList.add('center-align', 'white-text')
         loginMessage.setAttribute('data-js', 'login-message')
         phrasesContainer.append(loginMessage)
+
+        formAddPhrase.removeEventListener('submit', addPhrase)
+    }else{
+        formAddPhrase.addEventListener('submit', addPhrase)
     }
     
-    lis.forEach(li => {
-        const lisShouldBeVisible = li.dataset.js.includes(user ? 'logged-in' : 'logged-out')
-        
-        if(lisShouldBeVisible) {
-            li.classList.remove('hide')
-            return 
-        }
-        
-        li.classList.add('hide')
-    })
 }
 
 const initModals = () => {
@@ -77,9 +102,7 @@ const logout = async () => {
 }
 
 onAuthStateChanged(auth, showAppropriatedNavLinks)
-
 buttonGoogle.addEventListener('click', login)
-
 buttonLogout.addEventListener('click',logout )
 
 initModals()
