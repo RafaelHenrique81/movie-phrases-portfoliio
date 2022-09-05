@@ -10,7 +10,7 @@ const firebaseConfig = {
     messagingSenderId: '1019309186876',
     appId: '1:1019309186876:web:33161d6823644d96800839',
     measurementId: 'G-ZJLD1MNT6P'
-  }
+}
 
 const app = initializeApp(firebaseConfig)
 const auth = getAuth(app)
@@ -24,16 +24,15 @@ const buttonGoogle = document.querySelector('[data-js="button-google-login"]')
 const buttonLogout = document.querySelector('[data-js="logout"]')
 const addPhrase =  async e =>{
     e.preventDefault()
-
+    
     try {
         const addedDoc = await addDoc(collectionPhrases, {
             movieTitle: DOMPurify.sanitize(e.target.title.value), 
             phrase: DOMPurify.sanitize(e.target.phrase.value) 
         })
-
-        console.log('Document adicionado, id: ', addedDoc.id)
+     
         e.target.reset()
-
+        
         const modalAddPhrase = document.querySelector('[data-modal="add-phrase"]')
         M.Modal.getInstance(modalAddPhrase).close()
     } catch (error) {
@@ -41,11 +40,11 @@ const addPhrase =  async e =>{
     }
 }
 
-const showAppropriatedNavLinks = user => {
+const handleAuthStateChanged = user => {
     const loginMessageExists = document.querySelector('[data-js="login-message"]')
     const lis = [...document.querySelector('[data-js="nav-ul"]').children]
     const formAddPhrase = document.querySelector('[data-js="add-phrase-form"]')
-   
+    
     lis.forEach(li => {
         const lisShouldBeVisible = li.dataset.js.includes(user ? 'logged-in' : 'logged-out')
         
@@ -70,7 +69,10 @@ const showAppropriatedNavLinks = user => {
         phrasesContainer.append(loginMessage)
 
         formAddPhrase.removeEventListener('submit', addPhrase)
-    }else{
+        phrasesList.innerHTML = ''
+
+        return
+    }
         formAddPhrase.addEventListener('submit', addPhrase)
         onSnapshot(collectionPhrases, snapshot => {
             const documentFragment = document.createDocumentFragment()
@@ -92,10 +94,13 @@ const showAppropriatedNavLinks = user => {
             })
             
             phrasesList.append(documentFragment)
+
         })
-    }
-    
+
+        initCollapsibles()    
 }
+
+const initCollapsibles = () => M.Collapsible.init(phrasesList)
 
 const initModals = () => {
     const modals = document.querySelectorAll('[data-js="modal"]')
@@ -122,7 +127,7 @@ const logout = async () => {
     }    
 }
 
-onAuthStateChanged(auth, showAppropriatedNavLinks)
+onAuthStateChanged(auth, handleAuthStateChanged)
 buttonGoogle.addEventListener('click', login)
 buttonLogout.addEventListener('click',logout )
 
