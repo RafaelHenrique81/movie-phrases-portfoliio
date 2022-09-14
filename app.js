@@ -19,6 +19,7 @@ const db = getFirestore(app)
 const collectionPhrases = collection(db, 'movie-phrases')
 const phrasesList = document.querySelector('[data-js="phrases-list"]')
 
+
 const phrasesContainer = document.querySelector('[data-js="phrases-container"]')
 
 const addPhrase =  async e =>{
@@ -39,6 +40,8 @@ const addPhrase =  async e =>{
     }
 }
 
+let unsubscribe = null
+
 const handleAuthStateChanged = user => {
     const loginMessageExists = document.querySelector('[data-js="login-message"]')
     const lis = [...document.querySelector('[data-js="nav-ul"]').children]
@@ -46,6 +49,8 @@ const handleAuthStateChanged = user => {
     const buttonGoogle = document.querySelector('[data-js="button-google-login"]')
     const buttonLogout = document.querySelector('[data-js="logout"]')
     
+    console.log()
+
     lis.forEach(li => {
         const lisShouldBeVisible = li.dataset.js.includes(user ? 'logged-in' : 'logged-out')
         
@@ -62,6 +67,10 @@ const handleAuthStateChanged = user => {
     }
 
     if (!user) {
+        if(unsubscribe){
+            unsubscribe()
+        }
+
         const loginMessage = document.createElement('h5')
         
         loginMessage.textContent = 'Faça login para ver as frases'
@@ -81,7 +90,7 @@ const handleAuthStateChanged = user => {
         buttonLogout.addEventListener('click',logout )
         buttonGoogle.removeEventListener('click', login)
 
-        onSnapshot(collectionPhrases, snapshot => {
+        unsubscribe = onSnapshot(collectionPhrases, snapshot => {
             const documentFragment = document.createDocumentFragment()
 
             snapshot.docChanges().forEach(docChange => {
