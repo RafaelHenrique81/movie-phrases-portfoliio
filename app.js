@@ -147,7 +147,6 @@ const logout = async () => {
     try {
         await signOut(auth)
         addUserName('','')            
-        console.log('usuario foi deslogado')
     } catch (error) {
         
     }    
