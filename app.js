@@ -17,16 +17,20 @@ const auth = getAuth(app)
 const provider = new GoogleAuthProvider()
 const db = getFirestore(app)
 const collectionPhrases = collection(db, 'movie-phrases')
+const user = getAuth()
 const phrasesList = document.querySelector('[data-js="phrases-list"]')
-
-
 const phrasesContainer = document.querySelector('[data-js="phrases-container"]')
+const modalAccount = document.querySelector('[data-js="account-details"]')
+
+
+let userData = user
+let unsubscribe = null
 
 const addPhrase =  async e =>{
     e.preventDefault()
     
     try {
-        const addedDoc = await addDoc(collectionPhrases, {
+        await addDoc(collectionPhrases, {
             movieTitle: DOMPurify.sanitize(e.target.title.value), 
             phrase: DOMPurify.sanitize(e.target.phrase.value) 
         })
@@ -40,7 +44,10 @@ const addPhrase =  async e =>{
     }
 }
 
-let unsubscribe = null
+const addUserName = (name, email) => {
+    modalAccount.textContent = `${name}  |   ${email}`
+}
+
 
 const handleAuthStateChanged = user => {
     const loginMessageExists = document.querySelector('[data-js="login-message"]')
@@ -49,8 +56,6 @@ const handleAuthStateChanged = user => {
     const buttonGoogle = document.querySelector('[data-js="button-google-login"]')
     const buttonLogout = document.querySelector('[data-js="logout"]')
     
-    console.log()
-
     lis.forEach(li => {
         const lisShouldBeVisible = li.dataset.js.includes(user ? 'logged-in' : 'logged-out')
         
@@ -86,6 +91,10 @@ const handleAuthStateChanged = user => {
 
         return
     }
+
+    addUserName(userData.currentUser.displayName, userData.currentUser.email)
+    
+
         formAddPhrase.addEventListener('submit', addPhrase)
         buttonLogout.addEventListener('click',logout )
         buttonGoogle.removeEventListener('click', login)
@@ -137,12 +146,13 @@ const login = async () => {
 const logout = async () => {
     try {
         await signOut(auth)
+        addUserName('','')            
         console.log('usuario foi deslogado')
     } catch (error) {
         
     }    
 }
 
-onAuthStateChanged(auth, handleAuthStateChanged)
+onAuthStateChanged(auth, handleAuthStateChanged, user)
 
 initModals()
